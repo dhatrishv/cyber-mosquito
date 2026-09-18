@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyber Mosquito Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top-bar card">
+      <div>
+        <h1>CYBER MOSQUITO</h1>
+        <p>Autonomous RF Anomaly Investigation System</p>
+      </div>
+      <div class="status-strip">
+        <span class="status-item"><i id="system-dot" class="dot online"></i>System Online</span>
+        <span class="status-item"><i id="backend-dot" class="dot offline"></i>Backend</span>
+        <span class="status-item"><i id="robot-dot" class="dot offline"></i>Robot</span>
+        <span class="status-item"><i id="rf-dot" class="dot offline"></i>RF Sensor</span>
+        <span class="status-item"><i id="camera-dot" class="dot offline"></i>Camera</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="card" id="robot-status">
+        <h2>Robot Status</h2>
+        <dl class="stats-grid">
+          <div><dt>Robot ID</dt><dd id="robot-id">--</dd></div>
+          <div><dt>Status</dt><dd id="robot-online">OFFLINE</dd></div>
+          <div><dt>Mode</dt><dd id="robot-mode">--</dd></div>
+          <div><dt>Movement</dt><dd id="robot-movement">--</dd></div>
+          <div><dt>Battery</dt><dd id="robot-battery">--</dd></div>
+          <div><dt>Obstacle</dt><dd id="robot-obstacle">--</dd></div>
+          <div><dt>RSSI</dt><dd id="robot-rssi">--</dd></div>
+          <div><dt>Position</dt><dd id="robot-position">--</dd></div>
+          <div><dt>Zone</dt><dd id="robot-zone">--</dd></div>
+        </dl>
+      </section>
+
+      <section class="card" id="rf-monitor">
+        <h2>RF Monitor</h2>
+        <div class="inline-metrics">
+          <p>Status: <strong id="rf-status">--</strong></p>
+          <p>Frequency: <strong id="rf-frequency">--</strong></p>
+          <p>Signal: <strong id="rf-signal">--</strong></p>
+          <p>Activity: <strong id="rf-activity">--</strong></p>
+        </div>
+        <canvas id="signal-chart" width="420" height="150" aria-label="Signal chart"></canvas>
+      </section>
+
+      <section class="card" id="anomaly-panel">
+        <h2>ANOMALY DETECTED</h2>
+        <p id="anomaly-description">No anomaly detected.</p>
+        <ul>
+          <li>Frequency: <span id="anomaly-frequency">--</span></li>
+          <li>Signal: <span id="anomaly-signal">--</span></li>
+          <li>First Seen: <span id="anomaly-first-seen">--</span></li>
+          <li>Status: <span id="anomaly-status">--</span></li>
+          <li>Result: <span id="source-label">Estimated Source Region pending</span></li>
+        </ul>
+      </section>
+
+      <section class="card" id="pipeline-panel">
+        <h2>Investigation Pipeline</h2>
+        <div id="pipeline"></div>
+      </section>
+
+      <section class="card" id="map-panel">
+        <h2>RF Investigation Map</h2>
+        <canvas id="map-canvas" width="420" height="300" aria-label="RF map"></canvas>
+      </section>
+
+      <section class="card" id="camera-panel">
+        <h2>CAMERA</h2>
+        <div class="camera-placeholder">
+          <p>WAITING FOR CAMERA STREAM</p>
+        </div>
+      </section>
+
+      <section class="card" id="control-panel">
+        <h2>Robot Control</h2>
+        <div class="controls">
+          <button data-command="FORWARD">FORWARD</button>
+          <button data-command="LEFT">LEFT</button>
+          <button data-command="STOP">STOP</button>
+          <button data-command="RIGHT">RIGHT</button>
+          <button data-command="BACKWARD">BACKWARD</button>
+        </div>
+        <p id="command-result">No command sent.</p>
+      </section>
+
+      <section class="card" id="timeline-panel">
+        <h2>Event Timeline</h2>
+        <ul id="timeline"></ul>
+      </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

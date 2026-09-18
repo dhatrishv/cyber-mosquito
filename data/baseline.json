@@ -1,0 +1,5 @@
+{
+  "known_frequencies_mhz": [2412, 2437, 2462],
+  "max_expected_signal_dbm": -50,
+  "notes": "Baseline values are simulated and used for demo anomaly detection."
+}
