@@ -1,88 +1,79 @@
-# Cyber Mosquito
+# Cyber Mosquito — DSU Hackathon
 
-Cyber Mosquito is a software-first hackathon project for an ESP32-based 2WD robot used in **authorized and controlled RF anomaly investigation** demos.
+Complete demo stack:
 
-## Architecture
+- `backend/` — FastAPI telemetry API + dashboard server
+- `dashboard/` — browser dashboard with RF channel activity, rover telemetry, threat card, controls, event log
+- `esp32/node1_rover/` — rover firmware: Wi-Fi scan, RSSI/channel telemetry, motor control, backend HTTP API
+- `esp32/node2_simulation/` — controlled AP simulation node
+- `camera/` — optional USB-camera MJPEG server
+- `data/` — runtime data directory
 
-ESP32-S3 (future)  
-→ Wi-Fi / HTTP JSON  
-→ Python Flask backend  
-→ HTML/CSS/JavaScript dashboard
+## 1. Backend
 
-For now, a built-in simulator drives the full workflow without hardware.
+Windows:
 
-## Project Structure
-
-```
-cyber-mosquito/
-├── backend/
-├── dashboard/
-├── esp32/
-├── camera/
-├── data/
-├── API_CONTRACT.md
-└── README.md
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-## Quick Start
+Open:
 
-From repository root:
+`http://127.0.0.1:8000`
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r backend/requirements.txt
-python backend/app.py
+Find the PC's LAN IP with `ipconfig`. Example:
+
+`http://192.168.1.20:8000`
+
+The ESP32 must be able to reach that IP.
+
+## 2. Node 1
+
+Open `esp32/node1_rover/node1_rover.ino` in Arduino IDE.
+
+Install/use:
+- ESP32 Arduino core
+- `HTTPClient`, `WiFi` are included with the ESP32 core
+
+Set:
+
+```cpp
+WIFI_SSID
+WIFI_PASSWORD
+BACKEND_HOST
 ```
 
-In another terminal (same repo root):
+Example:
 
-```bash
-python3 -m http.server 8080
+```cpp
+const char* BACKEND_HOST = "192.168.1.20";
+const int BACKEND_PORT = 8000;
 ```
 
-Then open:
+Use GPIO 18/19 and 21/22 for the motor driver unless your hardware uses different safe GPIOs.
 
-- Dashboard: `http://127.0.0.1:8080/dashboard/`
-- Backend API: `http://127.0.0.1:5000/api/status`
+Start with the wheels off the ground.
 
-## Simulator Flow
+## 3. Node 2
 
-The simulator continuously loops through:
+Upload `esp32/node2_simulation/node2_simulation.ino`.
 
-BASELINE → SCAN → DETECT → MEASURE → MOVE → MAP → LOCALIZE → ALERT
+Serial commands:
 
-It demonstrates:
+- `N` = normal AP
+- `A` = controlled attack simulation AP
+- `S` = status
 
-- robot movement across a grid
-- changing RSSI/signal values
-- anomaly state transitions
-- heatmap-style RF measurement points
-- **Estimated Source Region** output
-- event timeline updates
+## 4. Dashboard
 
-## API Endpoints
+The dashboard is served by FastAPI. It polls `/api/telemetry` and sends motor commands to `/api/rover/command`.
 
-- `GET /api/status`
-- `GET /api/rf`
-- `GET /api/events`
-- `GET /api/investigation`
-- `POST /api/command`
+## 5. Camera
 
-See [`API_CONTRACT.md`](API_CONTRACT.md) for full request/response details and ESP32 integration contract.
+Camera support is optional. See `camera/README.md`.
 
-## Testing Robot Commands
-
-Example command:
-
-```bash
-curl -X POST http://127.0.0.1:5000/api/command \
-  -H "Content-Type: application/json" \
-  -d '{"command":"FORWARD","duration_ms":500}'
-```
-
-## Notes
-
-- Dashboard values are API-driven (no hard-coded telemetry).
-- If backend is unavailable, dashboard shows offline indicators.
-- No database is used yet; baseline and observations are JSON files.
+This project only uses a controlled AP simulation for the security demonstration. It does not implement deauthentication, jamming, credential capture, or disruption of third-party networks.

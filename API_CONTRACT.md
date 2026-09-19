@@ -1,143 +1,76 @@
-# Cyber Mosquito API Contract
+# API Contract
 
-The dashboard communicates only with the Python backend over HTTP/JSON.
+Base URL:
 
-## Base URL
+`http://<BACKEND_IP>:8000`
 
-`http://127.0.0.1:5000`
+## GET /api/health
 
-## Endpoints
+Returns:
 
-### GET /api/status
-Returns current robot telemetry.
+```json
+{"ok":true}
+```
+
+## GET /api/telemetry
+
+Returns the latest Node 1 state:
 
 ```json
 {
-  "robot_id": "CM-01",
-  "status": "ONLINE",
-  "mode": "IDLE",
-  "movement": "STOP",
-  "battery": 87,
-  "distance_cm": 42,
-  "rssi": -52,
-  "position": {
-    "x": 1,
-    "y": 2,
-    "zone": "B2"
+  "rover": {
+    "online": true,
+    "state": "SEARCHING",
+    "direction": "RIGHT",
+    "moving": true
   },
-  "timestamp": "2026-09-18T04:00:00+00:00"
-}
-```
-
-Units: `battery` = %, `distance_cm` = centimeters, `rssi` = dBm.
-
-### GET /api/rf
-Returns current RF state.
-
-```json
-{
-  "frequency_mhz": 2437,
-  "signal_dbm": -61,
-  "activity": "MEDIUM",
-  "status": "NORMAL",
-  "timestamp": "2026-09-18T04:00:00+00:00"
-}
-```
-
-Units: `frequency_mhz` = MHz, `signal_dbm` = dBm.
-
-### GET /api/events
-Returns timeline events.
-
-```json
-[
-  {
-    "id": 1,
-    "message": "System initialized",
-    "timestamp": "2026-09-18T04:00:00+00:00"
+  "rf": {
+    "targetDetected": true,
+    "targetSSID": "CYBER-TEST-ATTACK",
+    "targetRSSI": -48,
+    "targetChannel": 11,
+    "networkCount": 17,
+    "channels": [2,0,1,0,0,4,0,0,1,0,5,0,1],
+    "threatType": "CONTROLLED SIMULATION"
+  },
+  "system": {
+    "uptime": 1234,
+    "lastEvent": "Controlled attack simulation detected",
+    "lastSeen": 1710000000
   }
-]
-```
-
-### GET /api/investigation
-Returns current stage, anomaly, measurements, and source estimate.
-
-```json
-{
-  "stage": "MAP",
-  "pipeline": ["BASELINE", "SCAN", "DETECT", "MEASURE", "MOVE", "MAP", "LOCALIZE", "ALERT"],
-  "anomaly_detected": true,
-  "anomaly": {
-    "title": "RF Anomaly",
-    "description": "Unexpected RF Activity",
-    "frequency_mhz": 2462,
-    "signal_dbm": -53,
-    "first_seen": "2026-09-18T04:00:09+00:00",
-    "investigation_status": "Investigation in progress"
-  },
-  "measurements": [
-    { "x": 2, "y": 1, "signal_dbm": -59 }
-  ],
-  "estimated_source_region": {
-    "x": 3,
-    "y": 2,
-    "zone": "C4",
-    "label": "Estimated Source Region",
-    "confidence": "MEDIUM",
-    "notes": "Visualization estimate only. Indoor RF environments are noisy and multipath effects reduce precision."
-  },
-  "completed": false,
-  "timestamp": "2026-09-18T04:00:00+00:00"
 }
 ```
 
-### POST /api/command
-Sends robot command.
+## POST /api/telemetry
 
-Request JSON:
+Node 1 posts the same structure. Backend stores the latest state.
 
-```json
-{
-  "command": "FORWARD",
-  "duration_ms": 500
-}
-```
+## POST /api/rover/command
 
-Supported commands: `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `STOP`.
-
-Response JSON:
+Request:
 
 ```json
-{
-  "accepted": true,
-  "command": "FORWARD",
-  "duration_ms": 500,
-  "timestamp": "2026-09-18T04:00:00+00:00"
-}
+{"command":"F"}
 ```
 
-Error response (`400`):
+Commands:
+
+- `F` forward
+- `B` backward
+- `L` left
+- `R` right
+- `S` stop
+
+The backend forwards the command to Node 1 when `NODE1_COMMAND_URL` is configured.
+
+## GET /api/events
+
+Returns recent events.
+
+## POST /api/events
+
+Request:
 
 ```json
-{
-  "accepted": false,
-  "error": "Unsupported command: JUMP"
-}
+{"message":"Example event","level":"INFO"}
 ```
-
-## Expected ESP32 Telemetry (Future)
-
-Future ESP32-S3 firmware should post compatible telemetry fields:
-
-- `robot_id` (string)
-- `status` (ONLINE/OFFLINE)
-- `mode` (IDLE/SCANNING/INVESTIGATING)
-- `movement` (FORWARD/BACKWARD/LEFT/RIGHT/STOP)
-- `battery` (%)
-- `distance_cm` (cm)
-- `rssi` (dBm)
-- `position.x`, `position.y`, `position.zone`
-- `frequency_mhz`, `signal_dbm`, `activity`, `status`
-- timestamps in ISO 8601 format
-
-Keeping these names/units stable allows the dashboard to remain unchanged when replacing the simulator with real ESP32 data.

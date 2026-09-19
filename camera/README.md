@@ -1,8 +1,23 @@
-# Camera Integration (Planned)
+# Optional Camera
 
-The dashboard includes a camera placeholder panel:
+The dashboard does not require a camera.
 
-- CAMERA
-- WAITING FOR CAMERA STREAM
+For a USB webcam, install:
 
-A future ESP32-S3-CAM stream (for example MJPEG over HTTP) can replace the placeholder without changing the API structure used by robot telemetry endpoints.
+```powershell
+pip install flask opencv-python
+```
+
+Then run:
+
+```powershell
+python camera_server.py
+```
+
+The server provides:
+
+`http://<PC_IP>:5000/video`
+
+You can later add an `<img src="http://<PC_IP>:5000/video">` panel to the dashboard.
+
+Use a local camera you control.

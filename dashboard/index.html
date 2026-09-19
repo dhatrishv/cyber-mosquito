@@ -1,100 +1,533 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cyber Mosquito Dashboard</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header class="top-bar card">
-      <div>
-        <h1>CYBER MOSQUITO</h1>
-        <p>Autonomous RF Anomaly Investigation System</p>
-      </div>
-      <div class="status-strip">
-        <span class="status-item"><i id="system-dot" class="dot online"></i>System Online</span>
-        <span class="status-item"><i id="backend-dot" class="dot offline"></i>Backend</span>
-        <span class="status-item"><i id="robot-dot" class="dot offline"></i>Robot</span>
-        <span class="status-item"><i id="rf-dot" class="dot offline"></i>RF Sensor</span>
-        <span class="status-item"><i id="camera-dot" class="dot offline"></i>Camera</span>
-      </div>
-    </header>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cyber Mosquito</title>
 
-    <main class="dashboard-grid">
-      <section class="card" id="robot-status">
-        <h2>Robot Status</h2>
-        <dl class="stats-grid">
-          <div><dt>Robot ID</dt><dd id="robot-id">--</dd></div>
-          <div><dt>Status</dt><dd id="robot-online">OFFLINE</dd></div>
-          <div><dt>Mode</dt><dd id="robot-mode">--</dd></div>
-          <div><dt>Movement</dt><dd id="robot-movement">--</dd></div>
-          <div><dt>Battery</dt><dd id="robot-battery">--</dd></div>
-          <div><dt>Obstacle</dt><dd id="robot-obstacle">--</dd></div>
-          <div><dt>RSSI</dt><dd id="robot-rssi">--</dd></div>
-          <div><dt>Position</dt><dd id="robot-position">--</dd></div>
-          <div><dt>Zone</dt><dd id="robot-zone">--</dd></div>
-        </dl>
-      </section>
+<style>
+:root{
+  --bg:#050b08;
+  --panel:#0a1510;
+  --panel2:#0d1d15;
+  --border:#1d4935;
+  --green:#39ff88;
+  --red:#ff5268;
+  --yellow:#ffc857;
+  --text:#dcffe9;
+  --muted:#78978a;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+header{
+  height:72px;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:#07100c;
+}
+.brand{
+  color:var(--green);
+  font-size:20px;
+  font-weight:bold;
+  letter-spacing:2px;
+}
+.sub{font-size:11px;color:var(--muted);letter-spacing:1px}
+.online{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+}
+.dot{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 10px var(--green);
+}
+main{
+  max-width:1600px;
+  margin:auto;
+  padding:18px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:15px;
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:17px;
+}
+.title{
+  color:var(--green);
+  font-size:13px;
+  font-weight:bold;
+  letter-spacing:1.5px;
+  margin-bottom:15px;
+}
+.stat{grid-column:span 3}
+.spectrum{grid-column:span 8}
+.threat{grid-column:span 4}
+.telemetry{grid-column:span 5}
+.direction{grid-column:span 3}
+.events{grid-column:span 4}
+.controls{grid-column:span 8}
+.big{font-size:27px;font-weight:bold}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.yellow{color:var(--yellow)}
+.muted{color:var(--muted)}
+.stat small{color:var(--muted)}
+.threatbox{
+  padding:16px;
+  border-radius:9px;
+  border:1px solid #236044;
+  background:#092017;
+}
+.threatbox.alert{
+  border-color:var(--red);
+  background:#2a0d13;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  border-bottom:1px solid #173427;
+  font-size:13px;
+}
+.row span{color:var(--muted)}
+.telemetrygrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.tile{
+  padding:13px;
+  background:var(--panel2);
+  border-radius:8px;
+}
+.tile label{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-bottom:7px;
+}
+.tile strong{font-size:17px}
+.spectrumbox{
+  height:300px;
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
+  padding:10px 8px 25px;
+  border-left:1px solid #234936;
+  border-bottom:1px solid #234936;
+}
+.bar{
+  flex:1;
+  min-width:10px;
+  height:3%;
+  border-radius:4px 4px 0 0;
+  background:linear-gradient(to top,#12613a,var(--green));
+  position:relative;
+  transition:height .35s ease;
+}
+.bar span{
+  position:absolute;
+  top:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  color:var(--green);
+  font-size:9px;
+}
+.bar label{
+  position:absolute;
+  bottom:-22px;
+  left:50%;
+  transform:translateX(-50%);
+  color:var(--muted);
+  font-size:9px;
+}
+.compass{
+  width:170px;height:170px;
+  margin:10px auto 14px;
+  border:1px solid #285b43;
+  border-radius:50%;
+  position:relative;
+  background:radial-gradient(circle,#10261a,#07110c);
+}
+.compass:before{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;left:50%;
+  border-left:1px solid #214634;
+}
+.compass:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:50%;
+  border-top:1px solid #214634;
+}
+.n{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:10px}
+.s{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px}
+.e{position:absolute;right:8px;top:50%;font-size:10px}
+.w{position:absolute;left:8px;top:50%;font-size:10px}
+.arrow{
+  position:absolute;
+  width:5px;height:62px;
+  left:50%;top:50%;
+  transform:translate(-50%,-100%);
+  transform-origin:50% 100%;
+  background:var(--green);
+  box-shadow:0 0 12px var(--green);
+  transition:transform .4s ease;
+}
+.log{
+  height:190px;
+  overflow:auto;
+  background:#030705;
+  border-radius:7px;
+  padding:10px;
+  font:11px monospace;
+}
+.event{
+  padding:7px 0;
+  border-bottom:1px solid #13251c;
+}
+.time{color:var(--green);margin-right:7px}
+.controlsgrid{
+  display:grid;
+  grid-template-columns:repeat(3,80px);
+  justify-content:center;
+  gap:8px;
+}
+button{
+  height:44px;
+  border:1px solid #2a6849;
+  border-radius:7px;
+  background:#0c2418;
+  color:var(--green);
+  font-weight:bold;
+  cursor:pointer;
+}
+button:hover{background:#123b27;border-color:var(--green)}
+.stop{color:var(--red);border-color:#71303b}
+@media(max-width:900px){
+  .stat,.spectrum,.threat,.telemetry,.direction,.events,.controls{
+    grid-column:span 12;
+  }
+}
+</style>
+</head>
 
-      <section class="card" id="rf-monitor">
-        <h2>RF Monitor</h2>
-        <div class="inline-metrics">
-          <p>Status: <strong id="rf-status">--</strong></p>
-          <p>Frequency: <strong id="rf-frequency">--</strong></p>
-          <p>Signal: <strong id="rf-signal">--</strong></p>
-          <p>Activity: <strong id="rf-activity">--</strong></p>
-        </div>
-        <canvas id="signal-chart" width="420" height="150" aria-label="Signal chart"></canvas>
-      </section>
+<body>
 
-      <section class="card" id="anomaly-panel">
-        <h2>ANOMALY DETECTED</h2>
-        <p id="anomaly-description">No anomaly detected.</p>
-        <ul>
-          <li>Frequency: <span id="anomaly-frequency">--</span></li>
-          <li>Signal: <span id="anomaly-signal">--</span></li>
-          <li>First Seen: <span id="anomaly-first-seen">--</span></li>
-          <li>Status: <span id="anomaly-status">--</span></li>
-          <li>Result: <span id="source-label">Estimated Source Region pending</span></li>
-        </ul>
-      </section>
+<header>
+  <div>
+    <div class="brand">CYBER MOSQUITO</div>
+    <div class="sub">RF SECURITY ROVER / DSU HACKATHON</div>
+  </div>
+  <div class="online">
+    <span class="dot" id="dot"></span>
+    <span id="connection">ROVER ONLINE</span>
+  </div>
+</header>
 
-      <section class="card" id="pipeline-panel">
-        <h2>Investigation Pipeline</h2>
-        <div id="pipeline"></div>
-      </section>
+<main>
+<div class="grid">
 
-      <section class="card" id="map-panel">
-        <h2>RF Investigation Map</h2>
-        <canvas id="map-canvas" width="420" height="300" aria-label="RF map"></canvas>
-      </section>
+<div class="card stat">
+  <div class="title">ROVER STATE</div>
+  <div class="big green" id="state">OFFLINE</div>
+  <small>Current operating state</small>
+</div>
 
-      <section class="card" id="camera-panel">
-        <h2>CAMERA</h2>
-        <div class="camera-placeholder">
-          <p>WAITING FOR CAMERA STREAM</p>
-        </div>
-      </section>
+<div class="card stat">
+  <div class="title">WIFI NETWORKS</div>
+  <div class="big" id="networks">0</div>
+  <small>Detected access points</small>
+</div>
 
-      <section class="card" id="control-panel">
-        <h2>Robot Control</h2>
-        <div class="controls">
-          <button data-command="FORWARD">FORWARD</button>
-          <button data-command="LEFT">LEFT</button>
-          <button data-command="STOP">STOP</button>
-          <button data-command="RIGHT">RIGHT</button>
-          <button data-command="BACKWARD">BACKWARD</button>
-        </div>
-        <p id="command-result">No command sent.</p>
-      </section>
+<div class="card stat">
+  <div class="title">TARGET RSSI</div>
+  <div class="big" id="rssi">--</div>
+  <small>Controlled target signal</small>
+</div>
 
-      <section class="card" id="timeline-panel">
-        <h2>Event Timeline</h2>
-        <ul id="timeline"></ul>
-      </section>
-    </main>
+<div class="card stat">
+  <div class="title">TARGET CHANNEL</div>
+  <div class="big" id="channel">--</div>
+  <small>2.4 GHz Wi-Fi channel</small>
+</div>
 
-    <script src="dashboard.js"></script>
-  </body>
+<div class="card spectrum">
+  <div class="title">RF / WIFI CHANNEL ACTIVITY</div>
+  <div class="spectrumbox" id="spectrum"></div>
+  <div class="muted" style="margin-top:12px;font-size:10px">
+    Wi-Fi channel activity derived from detected access points; not a general-purpose RF spectrum analyzer.
+  </div>
+</div>
+
+<div class="card threat">
+  <div class="title">THREAT MONITOR</div>
+  <div class="threatbox" id="threatbox">
+    <div class="big green" id="threatstatus">NO THREAT</div>
+    <div class="row"><span>SSID</span><strong id="ssid">--</strong></div>
+    <div class="row"><span>RSSI</span><strong id="trssi">--</strong></div>
+    <div class="row"><span>CHANNEL</span><strong id="tchannel">--</strong></div>
+    <div class="row"><span>TYPE</span><strong id="ttype">NONE</strong></div>
+  </div>
+</div>
+
+<div class="card telemetry">
+  <div class="title">ROVER TELEMETRY</div>
+  <div class="telemetrygrid">
+    <div class="tile"><label>DIRECTION</label><strong id="direction">STOPPED</strong></div>
+    <div class="tile"><label>MOTOR</label><strong id="motor">IDLE</strong></div>
+    <div class="tile"><label>UPTIME</label><strong id="uptime">0 s</strong></div>
+    <div class="tile"><label>LAST SEEN</label><strong id="seen">--</strong></div>
+    <div class="tile"><label>TARGET</label><strong id="target">NONE</strong></div>
+    <div class="tile"><label>SYSTEM</label><strong class="green">ONLINE</strong></div>
+  </div>
+</div>
+
+<div class="card direction">
+  <div class="title">ROVER DIRECTION</div>
+  <div class="compass">
+    <div class="n">N</div>
+    <div class="s">S</div>
+    <div class="e">E</div>
+    <div class="w">W</div>
+    <div class="arrow" id="arrow"></div>
+  </div>
+  <div class="big green" id="dirtext">STOPPED</div>
+</div>
+
+<div class="card events">
+  <div class="title">EVENT LOG</div>
+  <div class="log" id="log">
+    <div class="event"><span class="time">SYSTEM</span>Dashboard initialized</div>
+  </div>
+</div>
+
+<div class="card controls">
+  <div class="title">ROVER CONTROL</div>
+  <div class="controlsgrid">
+    <div></div><button onclick="cmd('F')">▲</button><div></div>
+    <button onclick="cmd('L')">◀</button>
+    <button class="stop" onclick="cmd('S')">STOP</button>
+    <button onclick="cmd('R')">▶</button>
+    <div></div><button onclick="cmd('B')">▼</button><div></div>
+  </div>
+</div>
+
+</div>
+</main>
+
+<script>
+let previousEvent = "";
+
+function eventLog(message){
+  const log = document.getElementById("log");
+  const div = document.createElement("div");
+  div.className = "event";
+  div.innerHTML =
+    '<span class="time">' +
+    new Date().toLocaleTimeString() +
+    '</span>' + message;
+  log.prepend(div);
+
+  while(log.children.length > 40){
+    log.removeChild(log.lastChild);
+  }
+}
+
+function drawSpectrum(channels){
+  const box = document.getElementById("spectrum");
+  box.innerHTML = "";
+
+  if(!Array.isArray(channels)) return;
+
+  const max = Math.max(...channels, 1);
+
+  channels.forEach((value, i) => {
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    bar.style.height =
+      Math.max(3, (value / max) * 90) + "%";
+
+    bar.innerHTML =
+      "<span>" + value + "</span>" +
+      "<label>" + (i + 1) + "</label>";
+
+    box.appendChild(bar);
+  });
+}
+
+function updateDirection(direction){
+  const arrow = document.getElementById("arrow");
+
+  let angle = 0;
+
+  if(direction === "RIGHT") angle = 90;
+  if(direction === "BACKWARD") angle = 180;
+  if(direction === "LEFT") angle = -90;
+
+  arrow.style.transform =
+    "translate(-50%,-100%) rotate(" +
+    angle + "deg)";
+}
+
+async function refresh(){
+
+  try{
+
+    const response =
+      await fetch("/api/telemetry",
+        {cache:"no-store"});
+
+    if(!response.ok) throw new Error();
+
+    const data = await response.json();
+
+    document.getElementById("connection").innerText =
+      "ROVER ONLINE";
+
+    document.getElementById("dot").style.background =
+      "var(--green)";
+
+    const rover = data.rover || {};
+    const rf = data.rf || {};
+    const system = data.system || {};
+
+    document.getElementById("state").innerText =
+      rover.state || "UNKNOWN";
+
+    document.getElementById("networks").innerText =
+      rf.networkCount ?? 0;
+
+    document.getElementById("rssi").innerText =
+      rf.targetDetected
+      ? rf.targetRSSI + " dBm"
+      : "--";
+
+    document.getElementById("channel").innerText =
+      rf.targetDetected
+      ? rf.targetChannel
+      : "--";
+
+    document.getElementById("direction").innerText =
+      rover.direction || "STOPPED";
+
+    document.getElementById("dirtext").innerText =
+      rover.direction || "STOPPED";
+
+    document.getElementById("motor").innerText =
+      rover.moving ? "MOVING" : "IDLE";
+
+    document.getElementById("uptime").innerText =
+      (system.uptime ?? 0) + " s";
+
+    document.getElementById("target").innerText =
+      rf.targetDetected
+      ? (rf.targetSSID || "TARGET")
+      : "NONE";
+
+    document.getElementById("seen").innerText =
+      system.lastSeen
+      ? new Date(system.lastSeen * 1000).toLocaleTimeString()
+      : "--";
+
+    drawSpectrum(rf.channels);
+
+    const box =
+      document.getElementById("threatbox");
+
+    const status =
+      document.getElementById("threatstatus");
+
+    if(rf.targetDetected){
+
+      box.className = "threatbox alert";
+      status.className = "big red";
+      status.innerText = "THREAT DETECTED";
+
+      document.getElementById("ssid").innerText =
+        rf.targetSSID || "CYBER-TEST-ATTACK";
+
+      document.getElementById("trssi").innerText =
+        rf.targetRSSI + " dBm";
+
+      document.getElementById("tchannel").innerText =
+        rf.targetChannel;
+
+      document.getElementById("ttype").innerText =
+        rf.threatType || "CONTROLLED SIMULATION";
+
+    }else{
+
+      box.className = "threatbox";
+      status.className = "big green";
+      status.innerText = "NO THREAT";
+
+      document.getElementById("ssid").innerText = "--";
+      document.getElementById("trssi").innerText = "--";
+      document.getElementById("tchannel").innerText = "--";
+      document.getElementById("ttype").innerText = "NONE";
+    }
+
+    updateDirection(rover.direction);
+
+    if(system.lastEvent &&
+       system.lastEvent !== previousEvent){
+
+      previousEvent = system.lastEvent;
+      eventLog(system.lastEvent);
+    }
+
+  }catch(error){
+
+    document.getElementById("connection").innerText =
+      "ROVER OFFLINE";
+
+    document.getElementById("dot").style.background =
+      "var(--red)";
+  }
+}
+
+async function cmd(command){
+
+  try{
+
+    await fetch("/api/rover/command", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        command:command
+      })
+    });
+
+    eventLog("Command sent: " + command);
+
+  }catch(error){
+
+    eventLog("Command failed");
+  }
+}
+
+setInterval(refresh, 2000);
+refresh();
+</script>
+
+</body>
 </html>
